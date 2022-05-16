@@ -1,0 +1,96 @@
+---
+API: 2.1
+OpenSesame: 3.3.10
+Platform: nt
+---
+set width 1024
+set uniform_coordinates yes
+set title "New experiment"
+set subject_parity even
+set subject_nr 0
+set start experiment
+set sound_sample_size -16
+set sound_freq 48000
+set sound_channels 2
+set sound_buf_size 1024
+set round_decimals 2
+set height 768
+set fullscreen no
+set form_clicks no
+set foreground white
+set font_underline no
+set font_size 18
+set font_italic no
+set font_family mono
+set font_bold no
+set experiment_path None
+set disable_garbage_collection yes
+set description "The main experiment item"
+set coordinates uniform
+set compensation 0
+set canvas_backend psycho
+set background black
+
+define sequence experiment
+	set flush_keyboard yes
+	set description "Runs a number of items in sequence"
+	run welcome always
+	run new_inline_script always
+
+define inline_script new_inline_script
+	set description "Executes Python code"
+	___run__
+	"""
+	This inline shows how to use the inpoutx64.dll to send markers/triggers.
+	"""
+	
+	# First, import the windll library, then declare a global lpt_io variable:
+	from ctypes import windll
+	global dll_obj
+	dll_obj = windll.LoadLibrary("inpoutx64.dll")
+	
+	# Set the LPT address (this may differ per PC!):
+	lpt_addr = '0x378'
+	
+	# Define a global helper function that sends the marker.
+	# This uses the DlPortWritePortUchar method, where the first
+	# argument is the lpt address as an integer, and the second 
+	# the marker value.
+	global send_marker
+	send_marker = lambda val: dll_obj.DlPortWritePortUchar(int(lpt_addr,0), val)
+	
+	# Reset the markers by sending a value zero:
+	send_marker(0)
+	
+	# Loop through the marker bits:
+	marker_canvas = Canvas()
+	my_keyboard = Keyboard()
+	
+	bit_val = 0
+	while True:
+	    
+	    mark_val = 2**bit_val
+	    bit_val = (bit_val + 1) % 8
+	    
+	    # Use the helper function to send the marker:
+	    send_marker(bit_val)
+	    
+	    # Display current marker:
+	    marker_canvas.clear()
+	    marker_canvas.text(f'Current marker: {bit_val}.')
+	    marker_canvas.show()
+	    
+	    # Check if user pressed a key. The timeout takes care of the pacing.
+	    response, timestamp = my_keyboard.get_key(timeout=2000)
+	    if response is not None:
+	        break
+	__end__
+	set _prepare ""
+
+define sketchpad welcome
+	set start_response_interval no
+	set reset_variables no
+	set duration 1
+	set description "Displays stimuli"
+	draw textline center=1 color=white font_bold=no font_family=serif font_italic=no font_size=32 html=yes show_if=always text=Hello x=0 y=0 z_index=0
+

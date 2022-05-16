@@ -37,4 +37,4 @@ dll_obj.DlPortWritePortUchar(int(lpt_addr,0), 0)
 
 del dll_obj
 
-print(f"{inpoutx64_fn} driver installed successfully. This window can now be closed.")
+print(f"{inpoutx64_fn} driver installed successfully.")
