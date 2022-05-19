@@ -1,6 +1,6 @@
 ﻿<#===================================================================================
 |                                                                                   |
-|  LPT driver and demo pusher script.                                               |
+|  LPT driver and demo repo pusher script.                                               |
 |   - Elio Sjak-Shie, 2022.                                                         |
 |                                                                                   |
 =====================================================================================
@@ -15,14 +15,14 @@
 ===================================================================================#>
 
 
+# PC names to push to:
+$PcNames = @('W0037962')
+
 # Parameters:
 $Params = @{}
 $Params.GitRepoName = 'lpt-driver-and-demos'
 $Params.GitSrcUrl = "https://github.com/solo-fsw/$($Params.GitRepoName)"
 $Params.DestPath = 'C:\SOLO\'
-
-# PC names to push to:
-$PcNames = @('W0037962')
 
 # Get credentials:
 if (-not $creds)
@@ -58,12 +58,29 @@ Function Install-InpOut($Params_in)
     {
     }
 
+    # Check that the folder exists.
+    if (-Not (Test-Path -Path .\$($Params_in.GitRepoName)))
+    {
+        throw "Git clone failed. Perhaps Git is not installed."
+    }
 
     cd ".\$($Params_in.GitRepoName)"
 
+    # Check python version (same try-catch reason as above):
+    try
+    { 
+        $pyVers = py --list
+    } catch
+    {
+    }
+    $pyGoodVer = $pyVers | Select-String -Pattern ' -3\.\d{1,2}-64'
+    if (-Not $pyGoodVer.Count)
+    {
+        throw "No 64-bit python found."
+    }
 
-    # Run installer
-    py "install_inpoutx64.py"
+    # Run installer using the first suitable python version:
+    py $pyGoodVer[0].ToString().Trim() "install_inpoutx64.py"
 
 }
 
