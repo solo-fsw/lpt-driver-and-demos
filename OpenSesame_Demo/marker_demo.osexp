@@ -23,7 +23,7 @@ set font_size 18
 set font_italic no
 set font_family mono
 set font_bold no
-set experiment_path "C:/ExperimentData/repos/lpt-driver-and-demos/OpenSesame_Demo"
+set experiment_path "C:\\Users\\adminsjakshieee\\ExperimentData"
 set disable_garbage_collection yes
 set description "The main experiment item"
 set coordinates uniform
@@ -54,7 +54,7 @@ define inline_script init_markers
 	dll_obj = windll.LoadLibrary("inpoutx64.dll")
 	
 	# Set the LPT address (this may differ per PC!):
-	lpt_addr = '0x378'
+	lpt_addr = '0x3FF8'
 	
 	# Define a global helper function that sends the marker.
 	# This uses the DlPortWritePortUchar method, where the first
@@ -86,22 +86,25 @@ define inline_script loop_marker_bits
 	marker_canvas = Canvas()
 	my_keyboard = Keyboard()
 	
-	bit_val = 0
+	bit_num = 0
 	while True:
 	    
-	    mark_val = 2**bit_val
-	    bit_val = (bit_val + 1) % 8
+	    #Calculate the marker value:
+	    mark_val = 2**bit_num
 	    
 	    # Use the helper function to send the marker:
-	    send_marker(bit_val)
+	    send_marker(mark_val)
 	    
 	    # Display current marker:
 	    marker_canvas.clear()
-	    marker_canvas.text(f'Current marker: {bit_val}.')
+	    marker_canvas.text(f'Current marker: {mark_val}. Bit num: {bit_num}')
 	    marker_canvas.show()
 	    
+	    # Calculate the next bit number:
+	    bit_num = (bit_num + 1) % 8
+	    
 	    # Check if user pressed a key. The timeout takes care of the pacing.
-	    response, timestamp = my_keyboard.get_key(timeout=2000)
+	    response, timestamp = my_keyboard.get_key(timeout=1000)
 	    if response is not None:
 	        break
 	__end__
