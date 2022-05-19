@@ -28,7 +28,7 @@ else:
     # If the file already exists, overwrite it anyways. This will crash if the file is in use, which shouldn't
     # be the case if it still needs to be installed.
     shutil.copy2(inpoutx64_src_pathfn, inpoutx64_dest_path)
-    print(f"{inpoutx64_dest_path + inpoutx64_fn} already existed, but was overwritten.")
+    print(f"{inpoutx64_dest_path + inpoutx64_fn} already existed, but was now overwritten.")
 assert os.path.exists(inpoutx64_dest_path + inpoutx64_fn), f"The {inpoutx64_fn} did not make it to {inpoutx64_dest_path}."
 
 # Run the DLL to automatically register it.

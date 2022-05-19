@@ -49,15 +49,15 @@ Function Install-InpOut($Params_in)
       Remove-Item ".\$($Params_in.GitRepoName)" -Recurse -force
     }
 
-    # Note, wrap the below in a try because git outputs to stderr, which causes the command
-    # to hand since $ErrorActionPreference = "Stop". For some reason, the 2>$null does not
-    # work in the remote session.
-    try 
-    {
-        git clone $Params_in.GitSrcUrl 2>$null
-    } catch 
-    {
-    }
+    # NOTE: For some reason certain commands output to stderr, which causes
+    # execution to halt if $ErrorActionPreference is set to stop. As such, temporarily set
+    # it to Continue. Redirecting the stderr (2>$null) does not seem to work on remote sessions.
+    $oldErrAc = $ErrorActionPreference
+
+    # Clone the repo:
+    $ErrorActionPreference = "Continue"
+    git clone $Params_in.GitSrcUrl 2>$null
+    $ErrorActionPreference = $oldErrAc
 
     # Check that the folder exists.
     if (-Not (Test-Path -Path .\$($Params_in.GitRepoName)))
@@ -67,21 +67,26 @@ Function Install-InpOut($Params_in)
 
     cd ".\$($Params_in.GitRepoName)"
 
-    # Check python version (same try-catch reason as above):
-    try
-    { 
-        $pyVers = py --list
-    } catch
-    {
-    }
+    # Check python version.
+    $ErrorActionPreference = "Continue"
+    $pyVers = py '--list' 2>$null
+    $ErrorActionPreference = $oldErrAc
+
+
     $pyGoodVer = $pyVers | Select-String -Pattern ' -3\.\d{1,2}-64'
     if (-Not $pyGoodVer.Count)
     {
         throw "No 64-bit python found."
     }
+    Write-Host "Found the following pythons: ($($pyVers -join ',')). Using: $($pyGoodVer[0])"
+    
 
-    # Run installer using the first suitable python version:
+    # Run installer using the first suitable python version (let this throw errors):
     py $pyGoodVer[0].ToString().Trim() "install_inpoutx64.py"
+
+    # Perfom checks:
+    Write-Host "Installer script completed."
+
 
 }
 
@@ -136,7 +141,8 @@ for ($i=0; $i -lt $pcNames.Count; $i++)
         if ($session)
         {
                     
-            # Configure remote PC:
+            # Configure remote PC to stop on errors. This is important since the success of certain
+            # commands is required for following commands.
             Invoke-Command -Session $session -ScriptBlock {$ErrorActionPreference = "Stop"}
 
             # Install:
@@ -149,7 +155,7 @@ for ($i=0; $i -lt $pcNames.Count; $i++)
     }
     catch
     {
-        Write-Host 'Installing Toolbox failed:' -ForegroundColor Red
+        Write-Host 'Failed:' -ForegroundColor Red
         Write-Host $_ -ForegroundColor Red
         Write-Host "Skipping PC $pcName." -ForegroundColor Red
     }
