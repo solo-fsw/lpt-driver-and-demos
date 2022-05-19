@@ -23,7 +23,7 @@ set font_size 18
 set font_italic no
 set font_family mono
 set font_bold no
-set experiment_path None
+set experiment_path "C:/ExperimentData/repos/lpt-driver-and-demos/OpenSesame_Demo"
 set disable_garbage_collection yes
 set description "The main experiment item"
 set coordinates uniform
@@ -35,16 +35,20 @@ define sequence experiment
 	set flush_keyboard yes
 	set description "Runs a number of items in sequence"
 	run welcome always
-	run new_inline_script always
+	run init_markers always
+	run loop_marker_bits always
 
-define inline_script new_inline_script
+define inline_script init_markers
 	set description "Executes Python code"
 	___run__
 	"""
 	This inline shows how to use the inpoutx64.dll to send markers/triggers.
+	
+	Before this can be run the inpoutx64.dll must be installed. This requires
+	admin privileges.
 	"""
 	
-	# First, import the windll library, then declare a global lpt_io variable:
+	# Import windll, then load the inpout library and set it as a global dll_obj.
 	from ctypes import windll
 	global dll_obj
 	dll_obj = windll.LoadLibrary("inpoutx64.dll")
@@ -59,8 +63,24 @@ define inline_script new_inline_script
 	global send_marker
 	send_marker = lambda val: dll_obj.DlPortWritePortUchar(int(lpt_addr,0), val)
 	
+	# The send_marker(value) function can now be called anywhere
+	# within this experiment. It will automatically call the DlPortWritePortUchar
+	# function using the address defined in lpt_addr and the passed value.
+	
 	# Reset the markers by sending a value zero:
 	send_marker(0)
+	__end__
+	set _prepare ""
+
+define inline_script loop_marker_bits
+	set description "Executes Python code"
+	___run__
+	"""
+	This code sends markers by looping through each bit. It displays the 
+	current marker value using a canvas object, and exits when the user 
+	presses any key on the keyboard. The code below is for demo purposes
+	only--this inline can be removed in the actual experiment.
+	"""
 	
 	# Loop through the marker bits:
 	marker_canvas = Canvas()
