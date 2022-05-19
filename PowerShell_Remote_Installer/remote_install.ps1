@@ -1,6 +1,6 @@
 ﻿<#===================================================================================
 |                                                                                   |
-|  LPT driver and demo repo pusher script.                                               |
+|  LPT driver and demo repo pusher script.                                          |
 |   - Elio Sjak-Shie, 2022.                                                         |
 |                                                                                   |
 =====================================================================================
@@ -8,7 +8,8 @@
 
     Remotely downloads the LPT driver repo and installs the driver.
 
-    To run, press F5. If that is disabled, select all and click F8.
+    To run, open the file in Windows PowerShell ISE and press F5. If that is
+    disabled, select all and click F8.
 
     NOTE: Change the PcNames array to the desired PCs.
 
